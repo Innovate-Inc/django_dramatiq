@@ -82,9 +82,14 @@ class Command(BaseCommand):
             "--worker-shutdown-timeout", type=int, default=600000,
             help="timeout for worker shutdown, in milliseconds (default: 10 minutes)"
         )
+        parser.add_argument(
+            "--skip-logging",
+            action="store_true",
+            help="do not call logging.basicConfig()",
+        )
 
     def handle(self, use_watcher, use_polling_watcher, use_gevent, path, processes, threads, verbosity, queues,
-               pid_file, log_file, forks, worker_shutdown_timeout, **options):
+               pid_file, log_file, forks, worker_shutdown_timeout, skip_logging, **options):
         executable_name = "dramatiq-gevent" if use_gevent else "dramatiq"
         executable_path = self._resolve_executable(executable_name)
         watch_args = ["--watch", "."] if use_watcher else []
@@ -126,7 +131,10 @@ class Command(BaseCommand):
 
         if log_file:
             process_args.extend(["--log-file", log_file])
-
+    
+        if skip_logging:
+            process_args.extend(["--skip-logging"])
+            
         self.stdout.write(' * Running dramatiq: "%s"\n\n' % " ".join(process_args))
 
         if sys.platform == "win32":
